@@ -14,14 +14,16 @@
   matrix produced by svd are treated as zero."
   ([m] (pinv m 0.0)) ;; default tolerance should be larger--maybe calculated
   ([m tolerance]
-   (let [treat-as-zero?  (fn [x] (< (Math/abs x) tolerance))
-         diag-pinv (fn [s] (let [smaller-dim (apply min (mx/shape s))  ;; pinv for rectangular diagonal matrix
-                                 newm (mx/transpose s)]
-                             (dotimes [i smaller-dim] ; is it necessary to go through every i? if x is truly zero, are the rest as well?
-                               (let [x (mx/mget newm i i)]
-                                 (if (treat-as-zero? x)
-                                   (when (not (zero? x)) (mx/mset! newm i i 0.0))
-                                   (mx/mset! newm i i (/ x)))))))
+   (let [treat-as-nonzero?  (fn [x] (> (Math/abs x) tolerance))
+         diag-pinv (fn [singular-vals sigma-rows sigma-cols] 
+                     (let [smaller-dim (min rows cols)
+                           sigma+ (ensure-mutable (zero-matrix cols rows))]
+                       (doseq [i (range smaller-dim)
+                               :let [x (mx/mget singular-vals i)]
+                               :while (treat-as-nonzero? x)]
+                         (mx/mset! sigma+ i i (/ x)))))
          {:keys [U S V*]} (lin/svd m)
-         S+ (diag-pinv S)]
+         rows (second (shape U)) ; FIXME
+         cols (first (shape V*)) ; FIXME
+         S+ (diag-pinv S rows cols)]
      (mx/mmul (mx/transpose V*) S+ (mx/transpose U)))))
