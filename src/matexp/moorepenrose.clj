@@ -9,7 +9,6 @@
 ;; Complex matrices are not fully part of core.matrix at present, right?
 ;; So I should use transpose rather than hermitian-transpose?
 ;; Eventually this needs to use hermitian-transpose on complex matrices.
-;; Could use doseq-indexed from Mikera's cljutils for the loop.
 (defn pinv 
   "Moore-Penrose pseudoinverse of matrix m calculated using svd.  tolerance 
   defaults to 0 during calculation. Absolute values of singular values that 
