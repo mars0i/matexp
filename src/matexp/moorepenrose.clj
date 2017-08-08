@@ -20,14 +20,12 @@
    (let [treat-as-nonzero? (fn [x] (> (Math/abs x) tolerance))
          diag-pinv (fn [singular-vals rows cols] 
                      (let [smaller-dim (min rows cols)
-                           sigma+ (m/ensure-mutable (m/zero-matrix rows cols))]
+                           sigma+ (m/ensure-mutable (m/zero-matrix cols rows))]
                        (u/doseq-indexed [x singular-vals i]
                           (when (treat-as-nonzero? x)
                             (m/mset! sigma+ i i (/ x))))
                        sigma+))
          [rows cols] (m/shape m)
          {:keys [U S V*]} (lin/svd m)
-         _ (println (m/shape U) (m/shape m) (m/shape V*)) ; DEBUG
          S+ (diag-pinv S rows cols)]
-     (println S+)
      (m/mmul (m/transpose V*) S+ (m/transpose U)))))
