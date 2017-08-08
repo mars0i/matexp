@@ -13,13 +13,14 @@
   "Moore-Penrose pseudoinverse of matrix m calculated using svd.  tolerance 
   defaults to 0 during calculation. Absolute values of singular values that 
   are less than or equal to tolerance will be treated as zero.  Won't work
-  if m's implementation doesn't have an implementation of svd."
+  if m's implementation doesn't have an implementation of svd unless svd
+  is available for the current-implementation."
   ([m] (pinv m 0.0)) ;; default tolerance should be larger--maybe calculated
   ([m tolerance]
    (let [treat-as-nonzero? (fn [x] (> (Math/abs x) tolerance))
-         diag-pinv (fn [singular-vals rows cols] 
+         diag-pinv (fn [singular-vals rows cols] ; pinv only for diagonal rectangular matrices
                      (let [smaller-dim (min rows cols)
-                           sigma+ (m/ensure-mutable (m/zero-matrix cols rows))]
+                           sigma+ (m/ensure-mutable (m/zero-matrix cols rows))] ; dims transposed
                        (u/doseq-indexed [x singular-vals i]
                           (when (treat-as-nonzero? x)
                             (m/mset! sigma+ i i (/ x))))
